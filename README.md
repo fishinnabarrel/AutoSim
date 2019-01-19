@@ -1,7 +1,7 @@
 ## AutoSim 1.3
 
 ### Introduction:
-AutoSim will automate the process of simulating seasons using DMB and import the results into the DMB Encyclopedia.
+AutoSim is an [AutoIt3](https://www.autoitscript.com/site/) script that automates the process of simulating multiple seasons using Diamond Mind Baseball and importing the results into the DMB Encyclopedia.
 
 ### Getting started:
 AutoSim will run from any disk location and does not need to be installed.  The program looks for the DMB11 and DMB11 Encyclopedia executable files in their default installation folders -- "C:\dmb11" and "C:\dmbenc11".  If you have DMB or the encyclopedia installed somewhere other than the defaults you can easily change the program folders through the **Options** menu on the AutoSim main menu.
