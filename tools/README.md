@@ -1,5 +1,7 @@
 ## Additional automation tools for Diamond mind Baseball
-[AutoIt](https://www.autoitscript.com/site/) scripts that automate the tedious button mashing required to perform some common tasks with [Diamond Mind Baseball](http://www.diamond-mind.com/)
+[AutoIt](https://www.autoitscript.com/site/) scripts that automate the tedious button mashing required to perform some common tasks with [Diamond Mind Baseball](http://www.diamond-mind.com/).
+
+These scripts have been tested to compile and run with [AutoIt 3.3.14.5](https://www.autoitscript.com/site/autoit/) and are compatible with Diamond Mind Baseball 11 and Windows 10.
 
 
 ### AutoDelete
