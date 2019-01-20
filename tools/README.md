@@ -10,11 +10,11 @@ Automates player modification from **Organzer**.  Changes player short names to 
 
 
 ### AutoSetUsage
-Automates bulk settings changes to m anager profiles for all teams from **Team roster**.  Sets batter and pitcher usage modes and player sort order.
+Automates bulk settings changes to manager profiles for all teams from **Team roster**.  Sets batter and pitcher usage modes and player sort order.
 
 
 ### AutoGamelog
 Parse DMB boxscores (expanded style) to extract player gamelogs for pitchers or batters.  Outputs to csv file.
 
 <br/>
-January 18, 2019
+January 20, 2019
