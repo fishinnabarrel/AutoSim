@@ -1,0 +1,3 @@
+# ignore executable files
+[Bb]in/
+*.exe
