@@ -1,15 +1,31 @@
-; ------------------------------------------------------------------------
-;
-; Title:          AutoDelete.au3
-; Developers:     David Pyke
-; Date:           6/14/2007
-; Last Update:    1/27/2011
-; Version:        0.8.0
-;
-; Script Function: Automate player deletion.
-;                  Delete players below AB, PA, IP or BF threshold.
-;                  Updated to operate with DMB 10.
-; ------------------------------------------------------------------------
+#cs
+-------------------------------------------------------------------------------
+Title:         AutoDelete.au3
+Developer:     David Pyke
+Date:          6/14/2007
+Last Update:   1/27/2011
+Version:       0.8.0
+
+Description: Automate player deletion.
+             Delete players below AB, PA, IP or BF threshold.
+             Updated to operate with DMB 10.
+-------------------------------------------------------------------------------
+Copyright (C) 2021 David Pyke.
+
+This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-------------------------------------------------------------------------------
+#ce
 
 ; Check if script is already running.
 _Singleton(@ScriptName, 0)
