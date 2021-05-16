@@ -3,10 +3,6 @@ These [AutoIt](https://www.autoitscript.com/site/) scripts simulate keystrokes a
 
 These scripts have been tested to compile and run with [AutoIt 3.3.14.5](https://www.autoitscript.com/site/autoit/) and are compatible with Diamond Mind Baseball 11 and Windows 10.
 
-### Download
-Precompiled binaries of the latest versions are available on the [releases](https://github.com/fishinnabarrel/AutoSim/releases) page.
-
-
 ### AutoDelete
 Automates player deletion from **Organizer**.  Will delete players below specified AB, PA, IP or BF threshold.
 

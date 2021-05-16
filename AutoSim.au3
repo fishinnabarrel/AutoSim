@@ -1,19 +1,19 @@
 #cs
 -------------------------------------------------------------------------------
  Title:         AutoSim.au3
- Developer:     David Pyke (with contributions from Ron Kelly)
+ Developer:     David Pyke
  Created:       February 26, 2006
- Last Update:   January 18, 2019
- Version:       1.3
+ Last Update:   May 16, 2021
+ Version:       12.0
 
  Description: Automate multiple season simulations with Diamond Mind
               Baseball and import into Diamond Mind Baseball
               Encyclopedia. GUI version.
 
-January 18, 2019 (Version 1.3):
-- Update for DMB version 11
+May 16, 2021 (Version 12.0):
+- Update for DMB version 12
 -------------------------------------------------------------------------------
-Copyright (C) 2019 David Pyke.
+Copyright (C) 2021 David Pyke.
 
 This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@ This program is free software: you can redistribute it and/or modify
 #include <GuiStatusBar.au3>
 #include <StaticConstants.au3>
 #include <WindowsConstants.au3>
-#include <Misc.au3>
 #include <Date.au3>
+#include <Misc.au3>
 
 Opt( "GUIOnEventMode", 1 )      ; 0=disable, 1=enable
 Opt( "MustDeclareVars", 1 )     ; 0=no, 1=require pre-declare
@@ -47,14 +47,14 @@ Opt( "TrayMenuMode", 1 )        ; ;0=append, 1=no default menu
 ;~ Opt( "WinWaitDelay", 500 )       ; 500 milliseconds
 
 Global Const $SCRIPT_TITLE = "AutoSim"
-Global Const $SCRIPT_VERSION = "1.3"
+Global Const $SCRIPT_VERSION = "12.0 beta"
 Global Const $DMB_TITLE = "Diamond Mind Baseball"
 Global Const $DMBENC_TITLE = "Diamond Mind Baseball Encyclopedia"
 Global Enum  $DMB_PATH = 1, $ENC_PATH, $SEASONS, $START, _
-                         $IS_RESTART, $LEFT, $RESTART, $GBGSTATS, $BOXSCORES
+             $IS_RESTART, $LEFT, $RESTART, $GBGSTATS, $BOXSCORES
 Global $g_startupSettings[10][2]
-Global $g_dmbInstallPath = "C:\dmb11"
-Global $g_dmbEncInstallPath = "C:\dmbenc11"
+Global $g_dmbInstallPath = "C:\dmb12"
+Global $g_dmbEncInstallPath = "C:\dmbenc12"
 Global $g_saveOnExit = 0
 Global $g_schedule = 0
 
@@ -62,13 +62,12 @@ Global $g_schedule = 0
 _Singleton( @ScriptName, 0 )
 
 HotKeySet( "^!x", "ExitClicked" )           ; Ctrl-Alt-x to exit script.
-HotKeySet( "^!r", "RefreshActiveDatabase" ) ; Ctrl-Alt-r to refresh the active database.
 
 #region --- GUI related code start ---
 Local $font = "Tahoma"
 Local $fontBold = "Tahoma Bold"
 
-Global $frmMain = GUICreate( $SCRIPT_TITLE & " " & $SCRIPT_VERSION, 487, 360, -1, -1, $WS_SIZEBOX )
+Global $frmMain = GUICreate( $SCRIPT_TITLE & " " & $SCRIPT_VERSION, 487, 326, -1, -1 )
 GUISetFont( 10, 400, 0, $font )
 
 Global $mnuFileMenu = GuiCtrlCreateMenu( "&File" )
@@ -78,14 +77,14 @@ Global $mnuFileSeperator = GUICtrlCreateMenuitem ( "", $mnuFileMenu )
 Global $mnuFileExitItem = GUICtrlCreateMenuitem( "E&xit" & @TAB & "Ctrl+Alt+X", $mnuFileMenu )
 
 Global $mnuOptionsMenu = GUICtrlCreateMenu( "&Options" )
-Global $mnuOptionsGBGStatsItem = GUICtrlCreateMenuItem( "Include game-by-game stats", $mnuOptionsMenu )
-Global $mnuOptionsBoxscoreItem = GUICtrlCreateMenuItem( "Include boxscores", $mnuOptionsMenu )
-Global $mnuOptionsRefreshItem = GUICtrlCreateMenuitem ( "&Refresh active database", $mnuOptionsMenu )
+Global $mnuOptionsGBGStatsItem = GUICtrlCreateMenuItem( "Include &game-by-game stats", $mnuOptionsMenu )
+Global $mnuOptionsBoxscoreItem = GUICtrlCreateMenuItem( "Include &boxscores", $mnuOptionsMenu )
+Global $mnuOptionsRefreshItem = GUICtrlCreateMenuitem ( "&Refresh active database" & @TAB & "F5", $mnuOptionsMenu )
 
 Global $mnuHelpMenu = GuiCtrlCreateMenu( "&Help" )
-;~ Global $mnuHelpHelpItem = GUICtrlCreateMenuitem ("Help   F1",$mnuHelpMenu)
+;~ Global $mnuHelpHelpItem = GUICtrlCreateMenuitem ("Help",$mnuHelpMenu)
 ;~ Global $mnuHelpSeperator = GUICtrlCreateMenuitem ("",$mnuHelpMenu, 1)
-Global $mnuHelpAboutItem = GUICtrlCreateMenuitem( "&About AutoSim", $mnuHelpMenu )
+Global $mnuHelpAboutItem = GUICtrlCreateMenuitem( "&About AutoSim" & @TAB & "F1", $mnuHelpMenu )
 
 Global $grpTop = GuiCtrlCreateGroup( "", 20, 5, 445, 80 )
 Global $lblSeasons = GuiCtrlCreateLabel( "Number of seasons to simulate:", 30, 25, 365, 20 )
@@ -99,14 +98,16 @@ Global $txtStart = GuiCtrlCreateInput( "1", 405, 55, 50, 22 )
 Global $grpBottom = GuiCtrlCreateGroup( "", 20, 90, 445, 147 )
 Global $lblDatabase = GuiCtrlCreateLabel( "Active DMB database: ", 30, 111, 365, 20 )
 GUICtrlSetFont( -1, 10, 700, 0, $font )
-Global $txtDBFrame = GUICtrlCreateLabel( "", 30, 136, 425, 28, $SS_ETCHEDFRAME )
-Global $txtDatabase = GUICtrlCreateLabel( "", 33, 139, 339, 22 )
+Global $txtDBFrame = GUICtrlCreateLabel( "", 30, 136, 400, 28, $SS_ETCHEDFRAME )
+Global $txtDatabase = GUICtrlCreateLabel( "", 33, 140, 394, 22 )
 GUICtrlSetColor( -1, 0x0000ff )
+Global $btnDatabase = GUICtrlCreateButton( "...", 431, 136, 24, 28 )
 Global $lblEncyclopedia = GuiCtrlCreateLabel( "Active DMB encyclopedia: ", 30, 171, 365, 20 )
 GUICtrlSetFont( -1, 10, 700, 0, $font )
-Global $txtEncFrame = GUICtrlCreateLabel( "", 30, 196, 425, 28, $SS_ETCHEDFRAME )
-Global $txtEncyclopedia = GUICtrlCreateLabel( "", 33, 199, 339, 22 )
+Global $txtEncFrame = GUICtrlCreateLabel( "", 30, 196, 400, 28, $SS_ETCHEDFRAME )
+Global $txtEncyclopedia = GUICtrlCreateLabel( "", 33, 200, 394, 22 )
 GUICtrlSetColor( -1, 0x0000ff )
+Global $btnEncyclopedia = GUICtrlCreateButton( "...", 431, 196, 24, 28 )
 
 Global $btnStart = GUICtrlCreateButton( "Start", 288, 245, 85, 28 )
 GUICtrlSetResizing( -1, $GUI_DOCKRIGHT + $GUI_DOCKSIZE )
@@ -124,6 +125,10 @@ Global $frmStatusBar = _GUICtrlStatusBar_Create( $frmMain )
 _GUICtrlStatusBar_SetSimple ( $frmStatusBar, True )
 GUIRegisterMsg( $WM_SIZE, "WM_SIZE" )
 
+; Set GUI Accelerator keys
+Local $accelKeys[2][2] = [["{F1}", $mnuHelpAboutItem], ["{F5}", $mnuOptionsRefreshItem ]]
+GUISetAccelerators( $accelKeys, $frmMain )
+
 ; Set the events.
 GUICtrlSetOnEvent( $mnuFileDMBPathItem, "SetDMBPath" )
 GUICtrlSetOnEvent( $mnuFileENCPathItem, "SetENCPath" )
@@ -134,6 +139,8 @@ GUICtrlSetOnEvent( $mnuOptionsRefreshItem, "RefreshActiveDatabase" )
 GUICtrlSetOnEvent( $mnuHelpAboutItem, "DisplayAbout" )
 GUICtrlSetOnEvent( $txtSeasons, "SetSave" )
 GUICtrlSetOnEvent( $txtStart, "SetSave" )
+GUICtrlSetOnEvent( $btnDatabase, "SetDMBPath" )
+GUICtrlSetOnEvent( $btnEncyclopedia, "SetENCPath" )
 GUICtrlSetOnEvent( $btnStart, "StartButtonClicked" )
 GUICtrlSetOnEvent( $btnExit, "ExitClicked" )
 GUISetOnEvent( $GUI_EVENT_CLOSE, "ExitClicked" )
@@ -141,7 +148,6 @@ TrayItemSetOnEvent( $uxTrayExit, "ExitClicked" )
 
 GUISetState()
 #endregion --- GUI related code end ---
-
 
 ; Load startup settings from configuration file, if one exists.
 ; If Autosim.ini does not exist or can not be read, check for command line parameters.
@@ -176,12 +182,10 @@ Else
         ; Update NumOfSeasons and StartAt to use regular settings next time AutoSim starts.
         $g_startupSettings[$SEASONS][1] = $settings[$SEASONS][1]
         $g_startupSettings[$START][1] = $settings[$START][1]
-;~ MsgBox(64, "DEBUG: Test Location 1","")
         SetSave()
     Else
         GUICtrlSetData( $txtSeasons, $settings[$SEASONS][1] )
         GUICtrlSetData( $txtStart, $settings[$START][1] )
-;~ MsgBox(64, "DEBUG: Test Location 2","")
         UpdateSettings()
     EndIf
 EndIf
@@ -200,8 +204,8 @@ While True
     Initialise()
     If @error Then
         Local $result = MsgBox( 17, $SCRIPT_TITLE, _
-                "Unable to locate Diamond Mind program files." & @CRLF & _
-                "Please update the paths to your DMB and DMBENC folders." )
+                                "Unable to locate Diamond Mind program files." & @CRLF & _
+                                "Please update the paths to your DMB and DMBENC folders." )
         If $result = 1 Then
             SetDMBPath()
             SetENCPath()
@@ -231,18 +235,19 @@ Func SetDMBPath()
     Local $dmbPath = FileSelectFolder( "Select the location of the DMB installation folder.", "" )
 
     ; Look for "baseball" application file to verify folder is a valid installation folder
-    If FileExists( $dmbPath & "/baseball.exe" ) Then
+    If @error Then
+        MsgBox( 64, $SCRIPT_TITLE, "No folder was selected." )
+    ElseIf FileExists( $dmbPath & "/baseball.exe" ) Then
         MsgBox( 64, $SCRIPT_TITLE, "The DMB installation folder is now set to: " & $dmbPath )
         $g_dmbInstallPath = $dmbPath
         SetSave()
         Initialise()
     Else
         MsgBox( 48, "DMB Installation Folder", "The folder '" & $dmbPath & _
-            "' does not contain a DMB application file." )
+                "' does not contain a DMB application file." )
     EndIf
     Return
 EndFunc
-
 
 Func SetENCPath()
     ;
@@ -252,19 +257,19 @@ Func SetENCPath()
     Local $encPath = FileSelectFolder( "Select the location of the DMB Encyclopedia installation folder.", "" )
 
     ; Look for "enc" application file to verify folder is a valid installation folder
-    If FileExists( $encPath & "/enc.exe" ) Then
+    If @error Then
+        MsgBox( 64, $SCRIPT_TITLE, "No folder was selected." )
+    ElseIf FileExists( $encPath & "/enc.exe" ) Then
         MsgBox( 64, $SCRIPT_TITLE, "The DMBENC installation folder is now set to: " & $encPath )
         $g_dmbEncInstallPath = $encPath
         SetSave()
         Initialise()
     Else
         MsgBox( 48, "DMBENC Installation Folder", "The folder '" & $encPath & _
-            "' does not contain a DMBENC application file." )
-
+                "' does not contain a DMBENC application file." )
     EndIf
     Return
 EndFunc
-
 
 Func GetCommandLineParams()
     ; Check for program paths entered at command line.
@@ -275,7 +280,6 @@ Func GetCommandLineParams()
     EndIf
     Return 0
 EndFunc
-
 
 Func StartButtonClicked()
     ; Begin simulating seasons.
@@ -316,9 +320,10 @@ Func StartButtonClicked()
 
     ; Main loop to simulate seasons.
     For $i = 0 to $NUM_SEASONS - 1
-        ; Status bar display e.g. Simming: 1005 (5/100) | Time: 75 min | Remaining: 105 min
-        Local $statusMsg = StringFormat("Simming: %i (%i/%i)", _
-                                         ($i + $START_AT), ($i + 1), $NUM_SEASONS)
+        ; Status bar display e.g. Simming: 1005 (005/100) | Time: 75 min | Remaining: 105 min
+        Local $statusMsg = StringFormat( "Simming: %04i (%03i/%03i)", _
+                                         ($i + $START_AT), ($i + 1), $NUM_SEASONS )
+
         If $i > 0 Then
             _TicksToTime($simTime + $importTime, $elapHr, $elapMin, $elapSec)
             _TicksToTime((($simTime + $importTime )/$i) * ($NUM_SEASONS - $i), _
@@ -361,7 +366,6 @@ Func StartButtonClicked()
     Return
 EndFunc
 
-
 Func RefreshActiveDatabase()
     ; Refresh active db fields.
     ; Return value: None
@@ -374,7 +378,6 @@ Func RefreshActiveDatabase()
     EndIf
     Return 0
 EndFunc
-
 
 Func SetOptions()
     ; Set persistent options in the Options menu
@@ -389,7 +392,7 @@ Func SetOptions()
             GUICtrlSetState( $mnuOptionsBoxscoreItem, $GUI_UNCHECKED )
         Else
             GUICtrlSetState($mnuOptionsBoxscoreItem, $GUI_CHECKED)
-        EndIf
+         EndIf
     EndIf
     SetSave()
 EndFunc
@@ -406,7 +409,6 @@ Func IsValidSeason()
     Return 1
 EndFunc
 
-
 Func IsValidStart()
     ; Validate starting season.
     ; Return value: 1 - Valid starting season, 0 - Not valid.
@@ -419,7 +421,6 @@ Func IsValidStart()
     Return 1
 EndFunc
 
-
 Func CloseAllRunningDMB()
     ; Close all open DMB or DMBEnc windows.
     ; Return value: None
@@ -428,7 +429,6 @@ Func CloseAllRunningDMB()
     WEnd
     Return 0
 EndFunc
-
 
 Func Initialise()
     ; Reads INI files to get state information at startup.
@@ -441,24 +441,24 @@ Func Initialise()
     CloseAllRunningDMB()
     ; Read baseball.ini to get numeric reference to active DMB Db.
     $dmbDbNum = IniRead( $g_dmbInstallPath & "\baseball.ini", "Locations", _
-        "ActivePlayerPath", "ERROR" )
+                         "ActivePlayerPath", "ERROR" )
     If $dmbDbNum <> "ERROR" Then
         ; Read baseball.ini to get path of active DMB Db.
         $dmbDbPath = IniRead( $g_dmbInstallPath & "\baseball.ini","Locations", _
-            "PlayerPath" & $dmbDbNum, "ERROR" )
+                              "PlayerPath" & $dmbDbNum, "ERROR" )
         ; Read baseball.ini to get numeric reference to schedule.
         $g_schedule = IniRead( $g_dmbInstallPath & "\baseball.ini", "Locations", _
-            "LastLeague" & $dmbDbNum, "ERROR" )
+                               "LastLeague" & $dmbDbNum, "ERROR" )
         ; Read enc.ini to get numeric reference to active DMBEnc Db.
         $encDbNum = IniRead( $g_dmbEncInstallPath & "\enc.ini", "Locations", _
-            "ActiveEncPath", "ERROR" )
+                             "ActiveEncPath", "ERROR" )
         If $encDbNum <> "ERROR" Then
             ; Read enc.ini to get path of active DMBEnc Db.
             $encDbPath = IniRead( $g_dmbEncInstallPath & "\enc.ini", "Locations", _
-                "EncPath" & $encDbNum, "ERROR" )
+                                  "EncPath" & $encDbNum, "ERROR" )
             ; Update DMB source path in enc.ini to match active DMB Db path.
             IniWrite( $g_dmbEncInstallPath & "\enc.ini", "Locations", _
-                "DMBSrcPath", $dmbDbPath )
+                      "DMBSrcPath", $dmbDbPath )
         Else
             SetError( 2 ) ; Error reading ActiveEncPath in enc.ini.
         EndIf
@@ -475,18 +475,17 @@ Func Initialise()
     Return 0
 EndFunc
 
-
 Func RestartSeason( $dmbHandle )
     ; Reset DMB season.
     ; Return value: None
     WinActivate( $dmbHandle )
     WinWaitActive( $dmbHandle )
 
-    WinMenuSelectItem( $DMB_TITLE, "", "&Tools", "&Restart a season" )
+    WinMenuSelectItem( $dmbHandle, "", "&Tools", "&Restart a season" )
     WinWait( "Season Restart Options", "Organization or league" )
     If $g_schedule > 0 Then
         ControlCommand( "Season Restart Options", "Organization or league", _
-            "ComboBox1", "SetCurrentSelection", $g_schedule - 1 )
+                        "ComboBox1", "SetCurrentSelection", $g_schedule - 1 )
     EndIf
     ControlClick( "Season Restart Options", "Organization or league", "Button1" )
     WinWaitClose( "Season Restart Options", "Organization or league" )
@@ -508,7 +507,6 @@ Func RestartSeason( $dmbHandle )
     Return 0
 EndFunc
 
-
 Func SimulateSeason( $dmbHandle )
     ; Run season simulation.
     ; Return value: Time elapsed during simulation.
@@ -517,32 +515,56 @@ Func SimulateSeason( $dmbHandle )
     WinActivate( $dmbHandle )
     WinWaitActive( $dmbHandle )
 
-    WinMenuSelectItem( $DMB_TITLE, "", "&Game", "&Scheduled..." )
+    WinMenuSelectItem( $dmbHandle, "", "&Game", "&Scheduled..." )
     WinWait( $DMB_TITLE, "Scheduled Game selection" )
     If $g_schedule > 0 Then
         ControlCommand( $DMB_TITLE, "Scheduled Game selection", "ComboBox1", _
-            "SetCurrentSelection", $g_schedule - 1 )
+                        "SetCurrentSelection", $g_schedule - 1 )
     EndIf
 
-    AdlibRegister( "SimError", 500 )
-
     ; Begin simming season
-    WinMenuSelectItem( $DMB_TITLE, "Scheduled Game selection", "&Autoplay", "&All remaining games" )
+    WinMenuSelectItem( $dmbHandle, "Scheduled Game selection", "&Autoplay", "&All remaining games" )
 
-    ; Capture end of simmed season.
-    WinWait( "Baseball", "The selected games have been completed" )
-    ControlClick( "Baseball", "The selected games have been completed", "Button1" )
-    WinWaitClose( "Baseball", "The selected games have been completed" )
+    While True
+        Sleep( 1000 )
+        If WinExists( "Baseball", "The selected games have been completed" ) Then
+            ; Capture end of simmed season.
+            ControlClick( "Baseball", "The selected games have been completed", "Button1" )
+            WinWaitClose( "Baseball", "The selected games have been completed" )
 
-    WinWait( $DMB_TITLE, "Scheduled Game selection" )
-    WinMenuSelectItem( $DMB_TITLE, "Scheduled Game selection", "&Game", "E&xit" )
-    WinWaitClose( $DMB_TITLE, "Scheduled Game selection" )
+            WinWait( $DMB_TITLE, "Scheduled Game selection" )
+            WinMenuSelectItem( $dmbHandle, "Scheduled Game selection", "&Game", "E&xit" )
+            WinWaitClose( $DMB_TITLE, "Scheduled Game selection" )
+            ExitLoop
+        ElseIf Not WinExists( $dmbHandle ) Then
+            MsgBox( 64, $SCRIPT_TITLE, "Diamond Mind has closed unexpectedly." & @CRLF & _
+                    $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
 
-    AdlibUnRegister( "SimError" )
+            ; Database may be corrupted, not safe to continue
+            ExitClicked()
+        ElseIf WinExists( "BASEBALL Application" ) Then
+        ; ControlClick( "BASEBALL Application", "&Close program", "Button1" )
+            MsgBox( 64, $SCRIPT_TITLE, "Diamond Mind encountered an error." & @CRLF & _
+                    $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
+
+            ; Database may be corrupted, not safe to continue
+            ExitClicked()
+        ElseIf WinExists( "Baseball", "The computer manager was unable to field a valid" ) Then
+            ; Close dialog
+            ControlClick( "Baseball", "The computer manager was unable to field a valid", "Button1" )
+
+            ; Capture games completed window
+            WinWait( "Baseball", "The selected games have been completed" )
+            ControlClick( "Baseball", "The selected games have been completed", "Button1" )
+            WinWait( $DMB_TITLE, "Scheduled Game selection" )
+
+            ; Restart simming
+            WinMenuSelectItem( $DMB_TITLE, "Scheduled Game selection", "&Autoplay", "&All remaining games" )
+        EndIf
+    WEnd
 
     Return TimerDiff( $begin )    ; in milliseconds
 EndFunc
-
 
 Func ImportSeason( $year, $dmbEncHandle )
     ; Import season into Diamond Mind Baseball Encyclopedia.
@@ -551,9 +573,9 @@ Func ImportSeason( $year, $dmbEncHandle )
     WinActivate( $dmbEncHandle )
     WinWaitActive( $dmbEncHandle )
 
-    AdlibRegister( "ImportError", 500 )
+    ;~ AdlibRegister( "ImportError", 1000 )
 
-    WinMenuSelectItem( $DMBENC_TITLE, "", "&Tools", "&Import DMB season..." )
+    WinMenuSelectItem( $dmbEncHandle, "", "&Tools", "&Import DMB season..." )
     WinWait( "Import season", "Location of Diamond Mind database" )
     ControlClick( "Import season", "Location of Diamond Mind database", "Button2" )
     WinWaitClose( "Import season", "Location of Diamond Mind database" )
@@ -561,7 +583,7 @@ Func ImportSeason( $year, $dmbEncHandle )
     WinWait( "Season Add Options", "Organization or league" )
     If $g_schedule > 0 Then
         ControlCommand( "Season Add Options", "Organization or league", _
-            "ComboBox1", "SetCurrentSelection", $g_schedule - 1 )
+                        "ComboBox1", "SetCurrentSelection", $g_schedule - 1 )
     EndIf
     ControlSetText( "Season Add Options", "Year:", "Edit2", $year )
 
@@ -576,19 +598,25 @@ Func ImportSeason( $year, $dmbEncHandle )
         ControlCommand( "Season Add Options", "", "[ID:3021]", "UnCheck" )
     EndIf
 
-    ControlClick( "Season Add Options", "Organization or league", "Button1" )
+    ControlClick( "Season Add Options", "Organization or league", "Button3" )
     WinWaitClose( "Season Add Options", "Organization or league" )
 
-    WinWait( "Enc", "Season successfully loaded into the encyclopedia" )
-    ControlClick( "Enc", "Season successfully loaded into the encyclopedia", _
-                  "Button1" )
-    WinWaitClose( "Enc", "Season successfully loaded into the encyclopedia" )
-
-    AdlibUnRegister( "ImportError" )
+    While True
+        Sleep( 1000 )
+        If WinExists( "Enc", "Season successfully loaded into the encyclopedia" ) Then
+            ControlClick( "Enc", "Season successfully loaded into the encyclopedia", "Button1" )
+            WinWaitClose( "Enc", "Season successfully loaded into the encyclopedia" )
+            ExitLoop
+        ElseIf WinExists( "Enc", "Unable to load season" ) Then
+            MsgBox( 64, $SCRIPT_TITLE, "Encyclopedia was unable to import the season." & @CRLF & _
+                    $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
+            ExitClicked()
+		 EndIf
+	  WEnd
+    ;~ AdlibUnRegister( "ImportError" )
 
     Return TimerDiff( $begin )    ; in milliseconds
 EndFunc
-
 
 Func RecapMsg( $simTime, $importTime, $numOfSeasons )
     ; Display dialog with batch run statistics
@@ -617,14 +645,12 @@ Func RecapMsg( $simTime, $importTime, $numOfSeasons )
     Return 0
 EndFunc
 
-
 Func WM_SIZE( $hWnd )
     ; Resize the status bar when GUI size changes
     ; Return value:
     _GUICtrlStatusBar_Resize ( $frmStatusBar )
     Return $GUI_RUNDEFMSG
 EndFunc
-
 
 Func SetSave()
     ; Set flag to save settings to config file on exit.
@@ -633,7 +659,6 @@ Func SetSave()
     UpdateSettings()
     Return
 EndFunc
-
 
 Func UpdateSettings()
     ; Update startup settings array.
@@ -653,7 +678,6 @@ Func UpdateSettings()
     EndIf
 
     If $g_startupSettings[$IS_RESTART][1] <> "1" Then
-;~ MsgBox(64, "DEBUG: Test Location 3","")
         $g_startupSettings[$SEASONS][1] = GUICtrlRead( $txtSeasons )
         $g_startupSettings[$START][1] = GUICtrlRead( $txtStart )
     EndIf
@@ -663,17 +687,16 @@ Func UpdateSettings()
     Return
 EndFunc
 
-
 Func DisplayAbout()
     ; Displays an About message.
     ; Return value: None
     Local $reportText = $SCRIPT_TITLE & " " & $SCRIPT_VERSION & @CRLF & _
-        "January 2019" & @CRLF & @CRLF & _
-        "David Pyke"
+                        "May 2021" & @CRLF & @CRLF & _
+                        "Copyright (C) 2021 David Pyke." & @CRLF & _
+                        "https://github.com/fishinnabarrel/AutoSim"
     MsgBox( 0, "About " & $SCRIPT_TITLE, $reportText )
     Return 0
 EndFunc
-
 
 Func displayHelp()
     ; Displays a help message.
@@ -681,27 +704,30 @@ Func displayHelp()
     Return 0
 EndFunc
 
-
 Func SimError()
     ; Handle errors while simming.
     ; Return vale: None
-    If WinExists( "BASEBALL Application" ) Then
-        ;ControlClick( "BASEBALL Application", "&Close program", "Button1" )
-        MsgBox( 64, $SCRIPT_TITLE, "Diamond Mind has stopped simming." & @CRLF & _
-            $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
+    If Not ProcessExists( "baseball.exe" ) Then
 
-        CloseAllRunningDMB()
+        MsgBox( 64, $SCRIPT_TITLE, "Diamond Mind has closed unexpectedly." & @CRLF & _
+                $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
 
-        ; Update sim specs in GUI
-        GUICtrlSetData( $txtSeasons, $settings[$LEFT][1] )
-        GUICtrlSetData( $txtStart, $settings[$RESTART][1] )
+		; Database may be corrupted, not safe to continue
+        ExitClicked()
 
-        StartButtonClicked()
+	 ElseIf WinExists( "BASEBALL Application" ) Then
 
-    ElseIf WinExists( "Baseball", "The computer manager was unable to field a valid" ) Then
-        ; Close window
-        ControlClick( "Baseball", "The computer manager was unable to field a valid", _
-        "Button1" )
+	; ControlClick( "BASEBALL Application", "&Close program", "Button1" )
+        MsgBox( 64, $SCRIPT_TITLE, "Diamond Mind encountered an error." & @CRLF & _
+                $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
+
+        ; Database may be corrupted, not safe to continue
+        ExitClicked()
+
+ElseIf WinExists( "Baseball", "The computer manager was unable to field a valid" ) Then
+
+        ; Close dialog
+        ControlClick( "Baseball", "The computer manager was unable to field a valid", "Button1" )
 
         ; Capture games completed window
         WinWait( "Baseball", "The selected games have been completed" )
@@ -710,22 +736,21 @@ Func SimError()
 
         ; Restart simming
         WinMenuSelectItem( $DMB_TITLE, "Scheduled Game selection", "&Autoplay", "&All remaining games" )
+
     EndIf
     Return 0
 EndFunc
-
 
 Func ImportError()
     ; Handle errors while importing.
     ; Return vale: None
     If WinExists( "Enc", "Unable to load season" ) Then
         MsgBox( 64, $SCRIPT_TITLE, "Encyclopedia was unable to import the season." & @CRLF & _
-            $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
+                $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
         ExitClicked()
     EndIf
     Return 0
 EndFunc
-
 
 Func ExitClicked()
     ; Exits script in response to Exit Event.
