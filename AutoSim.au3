@@ -3,7 +3,7 @@
  Title:         AutoSim.au3
  Developer:     David Pyke
  Created:       February 26, 2006
- Last Update:   May 16, 2021
+ Last Update:   December 8, 2021
  Version:       12.0
 
  Description: Automate multiple season simulations with Diamond Mind
@@ -13,7 +13,7 @@
 May 16, 2021 (Version 12.0):
 - Update for DMB version 12
 -------------------------------------------------------------------------------
-Copyright (C) 2021 David Pyke.
+Copyright (C) 2022 David Pyke.
 
 This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ Opt( "TrayMenuMode", 1 )        ; ;0=append, 1=no default menu
 ;~ Opt( "WinWaitDelay", 500 )       ; 500 milliseconds
 
 Global Const $SCRIPT_TITLE = "AutoSim"
-Global Const $SCRIPT_VERSION = "12.0 beta"
+Global Const $SCRIPT_VERSION = "12.0"
 Global Const $DMB_TITLE = "Diamond Mind Baseball"
 Global Const $DMBENC_TITLE = "Diamond Mind Baseball Encyclopedia"
 Global Enum  $DMB_PATH = 1, $ENC_PATH, $SEASONS, $START, _
@@ -573,8 +573,6 @@ Func ImportSeason( $year, $dmbEncHandle )
     WinActivate( $dmbEncHandle )
     WinWaitActive( $dmbEncHandle )
 
-    ;~ AdlibRegister( "ImportError", 1000 )
-
     WinMenuSelectItem( $dmbEncHandle, "", "&Tools", "&Import DMB season..." )
     WinWait( "Import season", "Location of Diamond Mind database" )
     ControlClick( "Import season", "Location of Diamond Mind database", "Button2" )
@@ -613,7 +611,6 @@ Func ImportSeason( $year, $dmbEncHandle )
             ExitClicked()
 		 EndIf
 	  WEnd
-    ;~ AdlibUnRegister( "ImportError" )
 
     Return TimerDiff( $begin )    ; in milliseconds
 EndFunc
@@ -691,8 +688,8 @@ Func DisplayAbout()
     ; Displays an About message.
     ; Return value: None
     Local $reportText = $SCRIPT_TITLE & " " & $SCRIPT_VERSION & @CRLF & _
-                        "May 2021" & @CRLF & @CRLF & _
-                        "Copyright (C) 2021 David Pyke." & @CRLF & _
+                        "December 2021" & @CRLF & @CRLF & _
+                        "Copyright (C) 2022 David Pyke." & @CRLF & _
                         "https://github.com/fishinnabarrel/AutoSim"
     MsgBox( 0, "About " & $SCRIPT_TITLE, $reportText )
     Return 0
@@ -701,54 +698,6 @@ EndFunc
 Func displayHelp()
     ; Displays a help message.
     ; Return value: None
-    Return 0
-EndFunc
-
-Func SimError()
-    ; Handle errors while simming.
-    ; Return vale: None
-    If Not ProcessExists( "baseball.exe" ) Then
-
-        MsgBox( 64, $SCRIPT_TITLE, "Diamond Mind has closed unexpectedly." & @CRLF & _
-                $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
-
-		; Database may be corrupted, not safe to continue
-        ExitClicked()
-
-	 ElseIf WinExists( "BASEBALL Application" ) Then
-
-	; ControlClick( "BASEBALL Application", "&Close program", "Button1" )
-        MsgBox( 64, $SCRIPT_TITLE, "Diamond Mind encountered an error." & @CRLF & _
-                $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
-
-        ; Database may be corrupted, not safe to continue
-        ExitClicked()
-
-ElseIf WinExists( "Baseball", "The computer manager was unable to field a valid" ) Then
-
-        ; Close dialog
-        ControlClick( "Baseball", "The computer manager was unable to field a valid", "Button1" )
-
-        ; Capture games completed window
-        WinWait( "Baseball", "The selected games have been completed" )
-        ControlClick( "Baseball", "The selected games have been completed", "Button1" )
-        WinWait( $DMB_TITLE, "Scheduled Game selection" )
-
-        ; Restart simming
-        WinMenuSelectItem( $DMB_TITLE, "Scheduled Game selection", "&Autoplay", "&All remaining games" )
-
-    EndIf
-    Return 0
-EndFunc
-
-Func ImportError()
-    ; Handle errors while importing.
-    ; Return vale: None
-    If WinExists( "Enc", "Unable to load season" ) Then
-        MsgBox( 64, $SCRIPT_TITLE, "Encyclopedia was unable to import the season." & @CRLF & _
-                $SCRIPT_TITLE & " cannot continue. Your progress will be saved." )
-        ExitClicked()
-    EndIf
     Return 0
 EndFunc
 
