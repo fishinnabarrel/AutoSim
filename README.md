@@ -9,7 +9,7 @@ AutoSim is an [AutoIt](https://www.autoitscript.com/site/) script that simulates
 A precompiled binary of the latest version is available on the [releases](https://github.com/fishinnabarrel/AutoSim/releases/latest) page.
 
 ### Getting started
-AutoSim will run from any disk location and does not need to be installed.  The program looks for the DMB 12 and DMB Encyclopedia 12 executable files in their default installation folders -- "C:\dmb12" and "C:\dmbenc12".  If you have DMB or the encyclopedia installed somewhere other than the defaults you can easily change the program folders through the **Options** menu on the AutoSim main menu.
+AutoSim will run from any disk location and does not need to be installed.  The program looks for the DMB 12 and DMB Encyclopedia 12 executable files in their default installation folders -- "C:\dmb12" and "C:\dmbenc12".  If you have DMB or the encyclopedia installed somewhere other than the defaults you can easily change the program folders through the **File** menu on the AutoSim main menu.
 
 Before starting AutoSim make sure that you have made any desired league or organization adjustments from within DMB and that you have created a new encyclopedia database to store your results in the DMB Encyclopedia.
 
